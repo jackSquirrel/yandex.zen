@@ -1,28 +1,26 @@
+// КОНСТАНТЫ
 // Импорт модулей
 const { initialState } = require('./initialBoard');
 const readline = require('readline');
 
+// Размеры доски
 const M = 10;
-const N = 10;
+const N = 15;
 
+// Определение интерфейса стандартных потоков ввода/вывода
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-rl.question("Type 1, if you want to take initial state of the board from .js file\nType 2, if you want to create a random board \n", function(answer) {
-    const board = (answer === '1') ? initialState : getStartingState(M, N);
-    console.log(board);
-    changeBoard(board);
-});
 
-
-// Получить случайное число: 1 или 0
+// ФУНКЦИИ
+// Функция получения случайного числа: 1 или 0
 function getRandomNum() {
     return Math.round(Math.random());
 }
 
-// Инициализация случайного начального состояния доски
+// Функция инициализация случайного начального состояния доски
 function getStartingState(M, N) {
     const board = [];
     for (let i = 0; i < M; i++) {
@@ -34,7 +32,7 @@ function getStartingState(M, N) {
     return board;
 }
 
-// Изменение доски
+// Рекурсивная функция для изменения состояния доски
 function changeBoard(board) {
     const M = board.length;
     const N = board[0].length;
@@ -43,25 +41,32 @@ function changeBoard(board) {
         newBoard.push([]);
         for (let j = 0; j < N; j++) {
             const liveNeighbors = countLiveNeighbors(i, j, board, M, N);
-            if (board[i][j] === 1) {
-                if (liveNeighbors === 2 || liveNeighbors === 3) {
-                    newBoard[i].push(1);
-                } else {
-                    newBoard[i].push(0);
-                }
-            } else {
-                if (liveNeighbors === 3) {
-                    newBoard[i].push(1);
-                } else {
-                    newBoard[i].push(0);
-                }
-            }
+            rulesOfTheGame(board[i][j], newBoard, liveNeighbors, i);
         }
     }
     console.log(newBoard);
+    console.log();
     setTimeout(changeBoard, 1000, newBoard);
 }
 
+// Функция, реализующая правила игры
+function rulesOfTheGame(isCellAlive, newBoard, liveNeighbors, i) {
+    if (isCellAlive === 1) {
+        if (liveNeighbors === 2 || liveNeighbors === 3) {
+            newBoard[i].push(1);
+        } else {
+            newBoard[i].push(0);
+        }
+    } else {
+        if (liveNeighbors === 3) {
+            newBoard[i].push(1);
+        } else {
+            newBoard[i].push(0);
+        }
+    }
+}
+
+// Функция подсчета количества "живых" соседей
 function countLiveNeighbors(i, j, board, M, N) {
     let cnt = 0;
     const minRow = (i === 0) ? i : i - 1;
@@ -75,3 +80,18 @@ function countLiveNeighbors(i, j, board, M, N) {
     }
     return cnt - board[i][j];
 }
+
+// Взаимодействие с пользователем и вызов функций
+rl.question("Type 1, if you want to take initial state of the board from .js file\nType 2, if you want to create a random board \n", function(answer) {
+    const board = (answer === '1') ? initialState : ((answer === '2') ? getStartingState(M, N) : null);
+    if (board === null) {
+        console.log('Sorry, you printed something wrong :(');
+        rl.close();
+        return 0;
+    } 
+    console.log('Initial board:');
+    console.log(board);
+    console.log('New states:');
+    changeBoard(board);
+    rl.close();
+});
